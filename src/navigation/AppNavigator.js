@@ -7,12 +7,17 @@ import { AuthContext } from '../context/AuthContext';
 
 // Screens
 import LoginScreen from '../screens/auth/LoginScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import VerifyOtpScreen from '../screens/auth/VerifyOtpScreen';
+import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
+import ProjectInfoScreen from '../screens/auth/ProjectInfoScreen';
 import MainTabNavigator from './MainTabNavigator';
 import ComplaintDetailScreen from '../screens/main/ComplaintDetailScreen';
 import EditIssueScreen from '../screens/admin/EditIssueScreen';
 import EditUserScreen from '../screens/admin/EditUserScreen';
 import AssignStaffScreen from '../screens/admin/AssignStaffScreen';
 import CreateUserScreen from '../screens/admin/CreateUserScreen';
+import LeaderboardScreen from '../screens/main/LeaderboardScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -49,11 +54,16 @@ const AppNavigator = () => {
                         <Stack.Screen name="AssignStaff" component={AssignStaffScreen} options={{ headerShown: false }} />
                         <Stack.Screen name="EditUser" component={EditUserScreen} />
                         <Stack.Screen name="CreateUser" component={CreateUserScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ headerShown: false }} />
                     </Stack.Group>
                 ) : (
                     // Auth Stack
                     <Stack.Group>
                         <Stack.Screen name="Login" component={LoginScreen} />
+                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                        <Stack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
+                        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                        <Stack.Screen name="ProjectInfo" component={ProjectInfoScreen} />
 
                     </Stack.Group>
                 )}

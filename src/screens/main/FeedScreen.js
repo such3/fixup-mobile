@@ -201,17 +201,8 @@ const FeedScreen = ({ navigation }) => {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50" style={{ paddingTop: Platform.OS === 'android' ? 20 : 0 }}>
+        <SafeAreaView className="flex-1 bg-gray-50">
             <View className="px-4 py-4">
-                <View className="flex-row items-center justify-between mb-4">
-                    <View className="flex-row items-center">
-                        <View className="w-8 h-8 bg-primary rounded-lg items-center justify-center mr-2">
-                            <Text className="text-white font-bold text-lg">F</Text>
-                        </View>
-                        <Text className="text-2xl font-bold text-gray-900">Feed</Text>
-                    </View>
-                </View>
-
                 {/* Search Bar */}
                 <View className="flex-row items-center bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm mb-2">
                     <Ionicons name="search" size={20} color="#9ca3af" />

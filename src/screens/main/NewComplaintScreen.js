@@ -139,7 +139,7 @@ const NewComplaintScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: Platform.OS === 'android' ? 60 : 0 }}>
+        <SafeAreaView className="flex-1 bg-white">
             {/* Header */}
             <View className="flex-row items-center px-4 py-3 border-b border-gray-100">
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3">

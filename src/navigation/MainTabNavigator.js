@@ -4,7 +4,8 @@ import DashboardScreen from '../screens/main/DashboardScreen';
 import NewComplaintScreen from '../screens/main/NewComplaintScreen';
 import FeedScreen from '../screens/main/FeedScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
-import { View, Text } from 'react-native';
+import AnimatedTrophyIcon from '../components/AnimatedTrophyIcon';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -59,7 +60,28 @@ const MainTabNavigator = () => {
                 },
             })}
         >
-            <Tab.Screen name="Feed" component={FeedScreen} />
+            <Tab.Screen
+                name="Feed"
+                component={FeedScreen}
+                options={({ navigation }) => ({
+                    headerShown: true,
+                    headerTitle: "Home",
+                    headerRight: () => (
+                        <AnimatedTrophyIcon onPress={() => navigation.navigate('Leaderboard')} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#f8fafc',
+                        elevation: 0,
+                        shadowOpacity: 0,
+                        borderBottomWidth: 0,
+                    },
+                    headerTitleStyle: {
+                        fontWeight: 'bold',
+                        fontSize: 24,
+                        color: '#1e293b'
+                    }
+                })}
+            />
             <Tab.Screen name="New Issue" component={NewComplaintScreen} />
             {hasWorkplaceAccess && (
                 <Tab.Screen name="Workplace" component={WorkplaceNavigator} />
