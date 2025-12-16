@@ -85,11 +85,26 @@ const ResolveIssueScreen = ({ route, navigation }) => {
     return (
         <SafeAreaView className="flex-1 bg-white" edges={['top']}>
             {/* Header */}
-            <View className="flex-row items-center px-4 py-3 border-b border-gray-100 bg-white z-10">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3">
-                    <Ionicons name="arrow-back" size={24} color="black" />
+            <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100 bg-white z-10">
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 bg-gray-50 rounded-full mr-3">
+                        <Ionicons name="arrow-back" size={24} color="black" />
+                    </TouchableOpacity>
+                    <Text className="text-xl font-bold text-gray-900">Resolve Issue</Text>
+                </View>
+
+                {/* Header Action Button */}
+                <TouchableOpacity
+                    onPress={handleResolve}
+                    disabled={isLoading || !remarks.trim() || images.length === 0}
+                    className={`px-4 py-2 rounded-full ${(!remarks.trim() || images.length === 0) ? 'bg-gray-100' : 'bg-green-600'}`}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color={(!remarks.trim() || images.length === 0) ? "#9ca3af" : "white"} />
+                    ) : (
+                        <Text className={`font-bold ${(!remarks.trim() || images.length === 0) ? 'text-gray-400' : 'text-white'}`}>Resolve</Text>
+                    )}
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-gray-900">Resolve Issue</Text>
             </View>
 
             <KeyboardAvoidingView
@@ -100,7 +115,7 @@ const ResolveIssueScreen = ({ route, navigation }) => {
                 <ScrollView
                     className="flex-1 p-5"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ flexGrow: 1 }}
+                    contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
                 >
 
                     {/* Issue Summary */}
@@ -167,34 +182,7 @@ const ResolveIssueScreen = ({ route, navigation }) => {
                         </Text>
                     )}
 
-
-                    {/* Spacer to ensure content isn't hidden behind the floating button */}
-                    <View style={{ height: 100 + insets.bottom }} />
-
                 </ScrollView>
-
-                {/* Floating Bottom Button */}
-                <View
-                    className="absolute left-5 right-5"
-                    style={{ bottom: 10 + insets.bottom }}
-                >
-                    <TouchableOpacity
-                        className={`py-4 rounded-2xl shadow-lg flex-row items-center justify-center ${(!remarks.trim() || images.length === 0) ? 'bg-gray-300' : 'bg-green-600 shadow-green-200'
-                            }`}
-                        onPress={handleResolve}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <ActivityIndicator color="white" />
-                        ) : (
-                            <>
-                                <Ionicons name="checkmark-circle" size={24} color="white" />
-                                <Text className="text-white font-bold text-lg ml-2">Mark as Resolved</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                </View>
-
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
