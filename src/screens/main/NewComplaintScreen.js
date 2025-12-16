@@ -74,6 +74,68 @@ const NewComplaintScreen = ({ navigation }) => {
         }
     };
 
+    // Comprehensive Suggestions Database
+    const ALL_SUGGESTIONS = [
+        // Electrical
+        { id: 'e1', title: 'AC Not Cooling', dept: 'Electrical', desc: 'The Air Conditioner in [Location] is running but not cooling the room efficiently.' },
+        { id: 'e2', title: 'Fan Making Noise', dept: 'Electrical', desc: 'The ceiling fan in [Location] is making a loud wobbling noise.' },
+        { id: 'e3', title: 'Tube Light Not Working', dept: 'Electrical', desc: 'The tube light in [Location] is flickering or completely off.' },
+        { id: 'e4', title: 'Switch Broken', dept: 'Electrical', desc: 'The switch board in [Location] has a broken/stuck switch.' },
+        { id: 'e5', title: 'Power Socket Dead', dept: 'Electrical', desc: 'The charging socket in [Location] is not providing power.' },
+
+        // IT / Tech
+        { id: 'i1', title: 'Wi-Fi Issue', dept: 'IT', desc: 'Wi-Fi signal is very weak or not connecting in [Location].' },
+        { id: 'i2', title: 'Broken Projector', dept: 'IT', desc: 'The projector in [Location] is not turning on / displaying colors incorrectly.' },
+        { id: 'i3', title: 'PC Not Booting', dept: 'IT', desc: 'The lab computer in [Location] is not booting up.' },
+        { id: 'i4', title: 'Printer Paper Jam', dept: 'IT', desc: 'The printer in [Location] is jammed.' },
+
+        // Civil / Infrastructure
+        { id: 'c1', title: 'Water Leakage', dept: 'Civil', desc: 'There is a continuous water leakage from the tap/pipe in [Location].' },
+        { id: 'c2', title: 'Door Latch Broken', dept: 'Civil', desc: 'The door latch in [Location] is broken and cannot be locked.' },
+        { id: 'c3', title: 'Window Glass Cracked', dept: 'Civil', desc: 'The window glass in [Location] is cracked/broken.' },
+        { id: 'c4', title: 'Floor Tile Broken', dept: 'Civil', desc: 'Floor tiles are broken/uneven in [Location], causing stricture.' },
+
+        // Plumbing
+        { id: 'p1', title: 'Clogged Sink', dept: 'Civil', desc: 'The washbasin sink in [Location] is clogged and water is overflowing.' },
+        { id: 'p2', title: 'No Water Supply', dept: 'Civil', desc: 'There is no water coming from the taps in [Location].' },
+
+        // Housekeeping
+        { id: 'h1', title: 'Dusty/Unclean Room', dept: 'Housekeeping', desc: 'The classroom/corridor at [Location] has not been cleaned properly.' },
+        { id: 'h2', title: 'Dustbin Full', dept: 'Housekeeping', desc: 'The dustbin in [Location] is overflowing.' },
+        { id: 'h3', title: 'Bad Odor', dept: 'Housekeeping', desc: 'There is a foul smell coming from [Location].' },
+
+        // Furniture
+        { id: 'f1', title: 'Broken Bench/Chair', dept: 'Civil', desc: 'The bench/chair in [Location] is broken/wobbly.' },
+        { id: 'f2', title: 'Blackboard Damaged', dept: 'Civil', desc: 'The blackboard/whiteboard in [Location] has surface damage.' },
+    ];
+
+    const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const handleTitleChange = (text) => {
+        setTitle(text);
+        if (text.length > 1) {
+            const matches = ALL_SUGGESTIONS.filter(item =>
+                item.title.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredSuggestions(matches);
+            setShowSuggestions(true);
+        } else {
+            setShowSuggestions(false);
+        }
+    };
+
+    const applySuggestion = (item) => {
+        setTitle(item.title);
+        setDescription(item.desc);
+        const matchingDept = deptOptions.find(d => d.value === item.dept);
+        if (matchingDept) {
+            setDepartment(matchingDept);
+        }
+        setShowSuggestions(false); // Hide list after selection
+        showToast('info', 'Template Applied', `Auto-filled details for "${item.title}"`);
+    };
+
     const handleSubmit = async () => {
         if (!title || !description || !location || !department) {
             showToast('warning', 'Missing Fields', 'Please fill in title, description, location, and department');
@@ -151,18 +213,39 @@ const NewComplaintScreen = ({ navigation }) => {
             <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
                 <View className="space-y-5">
 
-                    {/* Title */}
-                    <View>
+                    {/* Title with Autocomplete */}
+                    <View className="z-50">
                         <Text className="text-gray-700 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">
                             Title <Text className="text-red-500">*</Text>
                         </Text>
                         <TextInput
                             className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-base font-medium text-gray-900 focus:border-primary focus:bg-white"
-                            placeholder="What's the issue?"
+                            placeholder="What's the issue? (Try typing 'AC' or 'Wi-Fi')"
                             placeholderTextColor="#9ca3af"
                             value={title}
-                            onChangeText={setTitle}
+                            onChangeText={handleTitleChange}
                         />
+
+                        {/* Suggestions Dropdown */}
+                        {showSuggestions && filteredSuggestions.length > 0 && (
+                            <View className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                                {filteredSuggestions.slice(0, 5).map((item, index) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        onPress={() => applySuggestion(item)}
+                                        className={`px-4 py-3 flex-row items-center justify-between ${index !== filteredSuggestions.length - 1 ? 'border-b border-gray-50' : ''}`}
+                                    >
+                                        <View className="flex-1">
+                                            <Text className="text-gray-900 font-medium">{item.title}</Text>
+                                            <Text className="text-gray-400 text-xs" numberOfLines={1}>{item.desc}</Text>
+                                        </View>
+                                        <View className="bg-gray-50 px-2 py-1 rounded text-xs">
+                                            <Text className="text-gray-500 text-xs font-bold">{item.dept}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
                     </View>
 
                     {/* Department */}
