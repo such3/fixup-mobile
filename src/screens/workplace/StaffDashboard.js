@@ -107,7 +107,7 @@ const StaffDashboard = ({ navigation }) => {
 
     const handleStartWork = async (issueId) => {
         try {
-            await axiosPrivate.patch(`/issues/${issueId}/status`, { status: 'in-progress' });
+            await axiosPrivate.patch(`/issues/${issueId}/status`, { status: 'In Progress' });
             Alert.alert("Started", "Issue is now In Progress.");
             fetchIssues();
         } catch (error) {
@@ -150,7 +150,7 @@ const StaffDashboard = ({ navigation }) => {
                     </TouchableOpacity>
                 );
             }
-            if (status === 'in-progress') {
+            if (status === 'in progress' || status === 'in-progress') {
                 return (
                     <TouchableOpacity
                         onPress={() => navigation.navigate('ResolveIssue', { issue: item })}

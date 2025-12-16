@@ -21,33 +21,7 @@ const EditIssueScreen = ({ route, navigation }) => {
     const [status, setStatus] = useState(issue.status || 'not started');
     const [location, setLocation] = useState(issue.location || '');
 
-    // Assignment State
-    const [staffAssigned, setStaffAssigned] = useState(issue.staffAssigned?._id || issue.staffAssigned || null);
-    const [staffList, setStaffList] = useState([]);
-    const [staffLoading, setStaffLoading] = useState(false);
-
     const [loading, setLoading] = useState(false);
-
-    // Fetch Staff when Department changes
-    useEffect(() => {
-        if (department) fetchStaff();
-    }, [department]);
-
-    const fetchStaff = async () => {
-        setStaffLoading(true);
-        try {
-            // Fetch staff for this department
-            const response = await axiosPrivate.get(`/users/staff?dept=${department}`);
-            if (response.data.success) {
-                setStaffList(response.data.data);
-            }
-        } catch (error) {
-            console.log("Fetch staff failed", error);
-            setStaffList([]);
-        } finally {
-            setStaffLoading(false);
-        }
-    };
 
     const handleSave = async () => {
         setLoading(true);
@@ -58,15 +32,14 @@ const EditIssueScreen = ({ route, navigation }) => {
                 department,
                 priority,
                 status,
-                location,
-                staffAssigned // sending ID
+                location
             };
 
             await axiosPrivate.patch(`/issues/${issue._id}/details`, payload);
             showToast('success', 'Updated', 'Issue updated successfully');
 
-            // Navigate back to Admin List, which should auto-refresh via focus effect
-            navigation.navigate('AdminIssueList');
+            // Navigate back to previous screen (Admin List), which should auto-refresh via focus effect
+            navigation.goBack();
         } catch (error) {
             console.error("Update Issue error", error);
             showToast('error', 'Error', 'Failed to update issue');
@@ -142,31 +115,7 @@ const EditIssueScreen = ({ route, navigation }) => {
                     ))}
                 </ScrollView>
 
-                <SectionLabel text="Assigned Worker" />
-                <View className="bg-white rounded-xl border border-gray-100 overflow-hidden mb-10">
-                    {staffLoading ? (
-                        <ActivityIndicator size="small" className="py-4" color="#2563eb" />
-                    ) : staffList.length === 0 ? (
-                        <Text className="text-gray-400 text-center py-4">No staff found in this department.</Text>
-                    ) : (
-                        staffList.map((staff, index) => (
-                            <TouchableOpacity
-                                key={staff._id}
-                                onPress={() => setStaffAssigned(staff._id)}
-                                className={`flex-row items-center p-3 ${index !== staffList.length - 1 ? 'border-b border-gray-50' : ''} ${staffAssigned === staff._id ? 'bg-blue-50' : 'bg-white'}`}
-                            >
-                                <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${staffAssigned === staff._id ? 'bg-blue-200' : 'bg-gray-100'}`}>
-                                    <Ionicons name="person" size={16} color={staffAssigned === staff._id ? '#1e40af' : '#6b7280'} />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className={`font-medium ${staffAssigned === staff._id ? 'text-blue-900' : 'text-gray-900'}`}>{staff.fullName}</Text>
-                                    <Text className="text-xs text-gray-500">{staff.email}</Text>
-                                </View>
-                                {staffAssigned === staff._id && <Ionicons name="checkmark-circle" size={20} color="#2563eb" />}
-                            </TouchableOpacity>
-                        ))
-                    )}
-                </View>
+
 
                 <View className="h-20" />
             </ScrollView>

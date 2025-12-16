@@ -19,11 +19,13 @@ const NewComplaintScreen = ({ navigation }) => {
     const [location, setLocation] = useState('');
     // Initialize with first option object
     const [department, setDepartment] = useState(deptOptions[0]);
-    const [image, setImage] = useState(null);
+
+    // Changed to array for multiple media
+    const [media, setMedia] = useState([]);
     const [attachedFile, setAttachedFile] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Camera Handler
+    // Camera Handler (Single Photo)
     const handleTakePhoto = async () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
@@ -33,14 +35,31 @@ const NewComplaintScreen = ({ navigation }) => {
         }
 
         const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
-            aspect: [4, 3],
+            allowsEditing: false, // Editing often conflicts with multiple items, kept false for simplicity
             quality: 0.7,
         });
 
         if (!result.canceled) {
-            setImage(result.assets[0].uri);
+            setMedia(prev => [...prev, result.assets[0]]);
         }
+    };
+
+    // Gallery Picker (Multiple Images & Videos)
+    const handlePickMedia = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaType.All, // Updated from MediaTypeOptions
+            allowsMultipleSelection: true,
+            selectionLimit: 5, // Reasonable limit
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            setMedia(prev => [...prev, ...result.assets]);
+        }
+    };
+
+    const removeMedia = (index) => {
+        setMedia(prev => prev.filter((_, i) => i !== index));
     };
 
     // File Picker Handler
@@ -70,23 +89,29 @@ const NewComplaintScreen = ({ navigation }) => {
             // Department is an object { label, value } from Dropdown
             formData.append('department', department.value);
 
-            // ... (rest of submission logic)
+            // Append Media (Images/Videos)
+            media.forEach((asset, index) => {
+                const uri = asset.uri;
+                const filename = uri.split('/').pop();
 
-            // Backend expects 'files' for both images and documents
-            if (image) {
-                const filename = image.split('/').pop();
-                const match = /\.(\w+)$/.exec(filename);
-                // Fix: map 'jpg' to 'jpeg' strictly if desired, but flexible now
-                let type = match ? `image/${match[1]}` : `image/jpeg`;
-                if (type === 'image/jpg') type = 'image/jpeg';
+                // Determine type
+                let type = 'image/jpeg'; // fallback
+                if (asset.type === 'video') {
+                    type = 'video/mp4';
+                } else {
+                    const match = /\.(\w+)$/.exec(filename);
+                    type = match ? `image/${match[1]}` : `image/jpeg`;
+                    if (type === 'image/jpg') type = 'image/jpeg';
+                }
 
-                formData.append('files', { uri: image, name: filename, type });
-            }
+                formData.append('files', { uri, name: filename, type });
+            });
 
+            // Append Document
             if (attachedFile) {
                 formData.append('files', {
                     uri: attachedFile.uri,
-                    name: attachedFile.name || 'attachment', // Fallback name
+                    name: attachedFile.name || 'attachment',
                     type: attachedFile.mimeType || 'application/octet-stream'
                 });
             }
@@ -100,7 +125,7 @@ const NewComplaintScreen = ({ navigation }) => {
             setDescription('');
             setLocation('');
             setDepartment(DEPARTMENTS[0]);
-            setImage(null);
+            setMedia([]);
             setAttachedFile(null);
 
             showToast('success', 'Success', 'Issue reported successfully!');
@@ -195,56 +220,75 @@ const NewComplaintScreen = ({ navigation }) => {
                         <Text className="text-gray-700 font-bold mb-2 ml-1 text-xs uppercase tracking-wider">
                             Attachments <Text className="text-red-500">*</Text>
                         </Text>
-                        <View className="flex-row items-center border border-gray-200 rounded-2xl p-1 bg-gray-50">
-                            <TouchableOpacity
-                                onPress={handleTakePhoto}
-                                className="flex-1 py-4 rounded-xl items-center bg-white shadow-sm mr-1"
-                            >
-                                <View className="bg-blue-100 p-2 rounded-full mb-1">
+
+                        <View className="flex-row items-center justify-between mb-3">
+                            <View className="flex-row space-x-2">
+                                <TouchableOpacity
+                                    onPress={handleTakePhoto}
+                                    className="bg-blue-50 p-3 rounded-xl border border-blue-100 items-center justify-center mr-2"
+                                >
                                     <Ionicons name="camera" size={24} color="#2563eb" />
-                                </View>
-                                <Text className="text-gray-900 font-bold text-sm">Take Photo</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={handlePickFile}
-                                className="flex-1 py-4 rounded-xl items-center"
-                            >
-                                <Ionicons name="document-attach-outline" size={24} color="#6b7280" />
-                                <Text className="text-gray-500 font-bold text-sm mt-1">Upload File</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* Previews */}
-                    {image && (
-                        <View className="relative rounded-2xl overflow-hidden shadow-sm">
-                            <Image source={{ uri: image }} className="w-full h-56 bg-gray-100" resizeMode="cover" />
-                            <TouchableOpacity
-                                onPress={() => setImage(null)}
-                                className="absolute top-3 right-3 bg-black/50 rounded-full w-8 h-8 items-center justify-center backdrop-blur-md"
-                            >
-                                <Ionicons name="close" size={20} color="white" />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {attachedFile && (
-                        <View className="bg-white p-4 rounded-2xl border border-gray-200 flex-row justify-between items-center shadow-sm">
-                            <View className="flex-row items-center flex-1 mr-2">
-                                <View className="w-10 h-10 bg-orange-100 rounded-lg items-center justify-center mr-3">
-                                    <Ionicons name="document-text" size={20} color="#ea580c" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="text-gray-900 font-bold text-sm" numberOfLines={1}>{attachedFile.name}</Text>
-                                    <Text className="text-gray-500 text-xs">{(attachedFile.size / 1024).toFixed(0)} KB</Text>
-                                </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={handlePickMedia}
+                                    className="bg-purple-50 p-3 rounded-xl border border-purple-100 items-center justify-center mr-2"
+                                >
+                                    <Ionicons name="images" size={24} color="#9333ea" />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={handlePickFile}
+                                    className="bg-gray-50 p-3 rounded-xl border border-gray-200 items-center justify-center"
+                                >
+                                    <Ionicons name="document-attach" size={24} color="#4b5563" />
+                                </TouchableOpacity>
                             </View>
-                            <TouchableOpacity onPress={() => setAttachedFile(null)} className="p-2">
-                                <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                            </TouchableOpacity>
+                            <Text className="text-xs text-gray-400">{media.length} items</Text>
                         </View>
-                    )}
+
+                        {/* Media Preview Scroll */}
+                        {media.length > 0 && (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+                                {media.map((asset, index) => (
+                                    <View key={index} className="mr-3 relative">
+                                        <Image
+                                            source={{ uri: asset.uri }}
+                                            className="w-24 h-24 rounded-xl bg-gray-100 border border-gray-200"
+                                            resizeMode="cover"
+                                        />
+                                        {asset.type === 'video' && (
+                                            <View className="absolute inset-0 items-center justify-center bg-black/20 rounded-xl">
+                                                <Ionicons name="play-circle" size={30} color="white" />
+                                            </View>
+                                        )}
+                                        <TouchableOpacity
+                                            onPress={() => removeMedia(index)}
+                                            className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 items-center justify-center border-2 border-white shadow-sm"
+                                        >
+                                            <Ionicons name="close" size={14} color="white" />
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                            </ScrollView>
+                        )}
+
+                        {/* Document Preview */}
+                        {attachedFile && (
+                            <View className="bg-white p-4 rounded-2xl border border-gray-200 flex-row justify-between items-center shadow-sm">
+                                <View className="flex-row items-center flex-1 mr-2">
+                                    <View className="w-10 h-10 bg-orange-100 rounded-lg items-center justify-center mr-3">
+                                        <Ionicons name="document-text" size={20} color="#ea580c" />
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="text-gray-900 font-bold text-sm" numberOfLines={1}>{attachedFile.name}</Text>
+                                        <Text className="text-gray-500 text-xs">{(attachedFile.size / 1024).toFixed(0)} KB</Text>
+                                    </View>
+                                </View>
+                                <TouchableOpacity onPress={() => setAttachedFile(null)} className="p-2">
+                                    <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
 
                     {/* Submit Button */}
                     <TouchableOpacity
